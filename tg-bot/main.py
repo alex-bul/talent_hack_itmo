@@ -62,7 +62,10 @@ def handle_wiki(message: Message):
             bot.send_message(user_telegram_id, answer + f"\n\nИсточник: {source}")
             CHATGPT_CONTEXT[user_telegram_id].append(answer)
         else:
-            raise Exception("answer == None, ошибка на стороне сервер")
+            bot.send_message(user_telegram_id,
+                             "Не получилось найти ответ на вопрос. Задайте другой или попробуйте позднее."
+                             "\n\nВы также можете задать вопрос одному из наших сотрудников: "
+                             "@alexbul0 или @S_Statsenko")
     except Exception as ex:
         print(ex)
         bot.send_message(user_telegram_id, "Произошла ошибка, отправьте вопрос еще раз")

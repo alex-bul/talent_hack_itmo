@@ -2,7 +2,7 @@ version: '3'
 services:
   telegram-bot:
     build:
-      context: ./talent_hack_itmo
+      context: ./tg-bot
       dockerfile: Dockerfile
     restart: always
     networks:
