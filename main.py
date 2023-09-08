@@ -1,3 +1,6 @@
+import json
+import requests
+
 from telebot import TeleBot
 
 from telebot.types import BotCommand, Message
@@ -8,7 +11,8 @@ from db.methods import set_chat_mode, get_user
 
 bot = TeleBot(token=BOT_TOKEN)
 
-chat_gpt_context = {}
+CHATGPT_CONTEXT = {}
+CONTEXT_SIZE = 1000
 
 bot.set_my_commands([
     BotCommand('/wiki', 'Поиск по вики'),
@@ -18,9 +22,49 @@ bot.set_my_commands([
 ])
 
 
+def context_size_change(user_telegram_id):
+    res = []
+    size = 0
+    for i, mes in enumerate(CHATGPT_CONTEXT[user_telegram_id][::-1]):
+        res.append(mes)
+        size += len(mes)
+        if size >= CONTEXT_SIZE:
+            break
+    CHATGPT_CONTEXT[user_telegram_id] = res[::-1].copy()
+    return res[::-1]
+
+
 def handle_wiki(message: Message):
     user_telegram_id = message.from_user.id
-    bot.send_message(user_telegram_id, "Не найдено!")
+    text = message.text
+    if user_telegram_id not in CHATGPT_CONTEXT:
+        CHATGPT_CONTEXT[user_telegram_id] = []
+    CHATGPT_CONTEXT[user_telegram_id].append(text)
+    try:
+        url = "http://127.0.0.1:8000/query"
+
+        payload = json.dumps({
+            "message": text,
+            "use_gpt": False,
+            "context": context_size_change(user_telegram_id),
+            "clarify": True
+        })
+        headers = {
+            'Content-Type': 'application/json'
+        }
+
+        response = requests.request("POST", url, headers=headers, data=payload).json()
+
+        answer = response['message']
+        source = response['source']
+        if answer:
+            bot.send_message(user_telegram_id, answer + f"\n\nИсточник: {source}")
+            CHATGPT_CONTEXT[user_telegram_id].append(answer)
+        else:
+            raise Exception("answer == None, ошибка на стороне сервер")
+    except Exception as ex:
+        print(ex)
+        bot.send_message(user_telegram_id, "Произошла ошибка, отправьте вопрос еще раз")
 
 
 def handle_chatgpt(message: Message):
@@ -57,6 +101,8 @@ def handle_chat_mode_change(message: Message):
 
     for mode, (answer, handler) in mods_info.items():
         if command.startswith(mode):
+            if mode == 'wiki':
+                CHATGPT_CONTEXT[user_telegram_id] = []
             bot.send_message(user_telegram_id, answer)
             set_chat_mode(user_telegram_id, mode)
             break
@@ -71,21 +117,6 @@ def handle_message(message):
         if user.chat_mode == mode:
             handler(message)
             break
-
-
-
-# @bot.message_handler(content_types=['voice'])
-# def voice_handler(message):
-#     chat_id = message.chat.id
-#
-#     bot.send_chat_action(chat_id, action='typing', timeout=100)
-#
-#     bot_message, text, error = voice_message_to_text(message)
-#
-#     bot.send_message(chat_id, bot_message)
-#
-#     if not error:
-#         message_handler(message, text)
 
 
 bot.polling(none_stop=True)
