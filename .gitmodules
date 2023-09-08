@@ -1,0 +1,3 @@
+[submodule "llm-retriever"]
+	path = llm-retriever
+	url = https://github.com/EgSergeenko/llm-retriever
