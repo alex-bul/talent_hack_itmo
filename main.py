@@ -36,6 +36,7 @@ def context_size_change(user_telegram_id):
 
 def handle_wiki(message: Message):
     user_telegram_id = message.from_user.id
+    bot.send_chat_action(user_telegram_id, action='typing', timeout=100)
     text = message.text
     if user_telegram_id not in CHATGPT_CONTEXT:
         CHATGPT_CONTEXT[user_telegram_id] = []
@@ -45,7 +46,7 @@ def handle_wiki(message: Message):
 
         payload = json.dumps({
             "message": text,
-            "use_gpt": False,
+            "use_gpt": True,
             "context": context_size_change(user_telegram_id),
             "clarify": True
         })
