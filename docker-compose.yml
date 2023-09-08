@@ -1,0 +1,22 @@
+version: '3'
+services:
+  telegram-bot:
+    build:
+      context: ./talent_hack_itmo
+      dockerfile: Dockerfile
+    restart: always
+    networks:
+      - my-network
+
+  backend:
+    build:
+      context: ./llm-retriever
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - "8000:8000"
+    networks:
+      - my-network
+
+networks:
+  my-network:

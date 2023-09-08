@@ -41,7 +41,7 @@ def handle_wiki(message: Message):
         CHATGPT_CONTEXT[user_telegram_id] = []
     CHATGPT_CONTEXT[user_telegram_id].append(text)
     try:
-        url = "http://127.0.0.1:8000/query"
+        url = "http://backend:8000/query"
 
         payload = json.dumps({
             "message": text,
