@@ -6,6 +6,6 @@ AI Ассистент для корпоративной деятельности
 
 1. Создать два .env файла по образу example в папке /llm-retriever
 2. Создать папку /llm-retriever/documents и заполнить её документами в формате txt, они составляют базу знаний компании
-3. В файл /tg-bot/api_keys.txt вставить в столбик токен от OpenAI API
+3. В файл /tg-bot/api_keys.txt вставить в столбик токены от OpenAI API
 
 `docker compose up --build`
